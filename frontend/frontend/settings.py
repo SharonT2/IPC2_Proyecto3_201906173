@@ -123,8 +123,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',#configuración permite tener archivos estáticos, como imágenes css, js, etc.
+STATICFILES_DIRS = [ 
+    BASE_DIR / 'C:/Users/Sharon/Desktop/Proyecto3/frontend/web/static',#configuración permite tener archivos estáticos, como imágenes css, js, etc.
 ]
 
 # Default primary key field type

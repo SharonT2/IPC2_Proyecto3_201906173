@@ -3,6 +3,7 @@ from flask import Flask, Response, request
 from flask_cors import CORS
 from math import pow
 import xml.etree.ElementTree as ET
+from peticiones import Peticiones
 variable=""
 
 app = Flask(__name__)
@@ -68,9 +69,10 @@ def post_datos():
                 print("total: ", r1.text.strip())
             print("--------->Petición: ")
 
+    
     #aquí masomenos terminaría de procesarlo
     variable="ahorasí Prueba"
-
+    
     archivo2 = open('modificación.xml', 'w+')#w+ será sobre escritura, borrará y volverá a escribirlo
     archivo2.write(str_file)#esa variable la manda a escribir en un archivo 
     archivo2.close()

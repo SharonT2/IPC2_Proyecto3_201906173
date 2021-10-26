@@ -23,7 +23,7 @@ def index(request):
         #otra opción sería abrir como tal el archivo desde aquí(qeu ya escribí en la api)
         #e imprimirlo en el index
 
-        archivo = open('C:/Users/Sharon/Desktop/proyectox/modificación.xml', '+r')
+        archivo = open('C:/Users/Sharon/Desktop/Proyecto3/modificación.xml', '+r')
         archivo=archivo.read()
         print("Archivo frontend: ", archivo)
         
