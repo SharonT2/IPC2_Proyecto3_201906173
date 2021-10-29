@@ -5,6 +5,7 @@ from math import pow
 import xml.etree.ElementTree as ET
 from peticiones import Peticiones
 variable=""
+arreglo = []
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})#permite que pueda acceder a mi api, desde direccioens externas etc.
@@ -38,6 +39,7 @@ def get_datos():
 @app.route('/datos', methods=['POST'])#P1
 def post_datos():
     global variable
+    global arreglo
     print("RESPUESTA api: ", request.data)
     #print(request.data)
     #print("DOCS: ", request.docs)
@@ -51,23 +53,47 @@ def post_datos():
     raiz = archivo.getroot()
 #    print("raiz: ", raiz)
     print("------------DATOS DE LAS PETICIONES---------")
+    uno=""
+    dos=""
+    tres=""
+    cuatro=""
+    cinco=""
+    seis=""
     for r0 in raiz:
         for c in r0.iter('DTE'):#cantidad de linas de producción
             for r1 in c.iter('TIEMPO'):
-                print("tiempo: ", r1.text.strip())
+                uno=r1.text.strip()
+                #print("tiempo: ", r1.text.strip())
             for r1 in c.iter('REFERENCIA'):
-                print("referencia: ", r1.text.strip())
+                dos=r1.text.strip()
+                #print("referencia: ", r1.text.strip())
             for r1 in c.iter('NIT_EMISOR'):
-                print("nitemisor: ", r1.text.strip())
+                tres=r1.text.strip()
+                #print("nitemisor: ", r1.text.strip())
             for r1 in c.iter('NIT_RECEPTOR'):
-                print("nitreceptor: ", r1.text.strip())
+                cuatro=r1.text.strip()
+                #print("nitreceptor: ", r1.text.strip())
             for r1 in c.iter('VALOR'):
-                print("valor: ", r1.text.strip())
+                cinco=r1.text.strip()
+                #print("valor: ", r1.text.strip())
             for r1 in c.iter('IVA'):
-                print("iva: ", r1.text.strip())
+                seis=r1.text.strip()
+                #print("iva: ", r1.text.strip())
             for r1 in c.iter('TOTAL'):
-                print("total: ", r1.text.strip())
-            print("--------->Petición: ")
+                siete=r1.text.strip()
+                #print("total: ", r1.text.strip())
+            arreglo.append(Peticiones(uno, dos, tres, cuatro, cinco, seis, siete))
+            #print("--------->Petición: ")
+            #aquí debe ir lo de imprimir los objetos ya los hice en un aarchivo a parte y sí imprime
+    for i in range(len(arreglo)):
+        print("------------>Petición: ", i)
+        print("Tiempo: ", arreglo[i].getTiempo())
+        print("Referencia: ", arreglo[i].getReferencia())
+        print("NitE: ", arreglo[i].getNitE())
+        print("NitR: ", arreglo[i].getNitR())
+        print("Valor: ", arreglo[i].getValor())
+        print("IVA: ", arreglo[i].getIva())
+        print("Total: ", arreglo[i].getTotal())
 
     
     #aquí masomenos terminaría de procesarlo

@@ -24,11 +24,12 @@ class Peticiones:
     def getValor(self):
         return self.valor
     
-    def getiva(self):
+    def getIva(self):
         return self.iva
 
     def getTotal(self):
         return self.total
+
 #set
     def setTiempo(self, tiempo):
         self.tiempo = tiempo
