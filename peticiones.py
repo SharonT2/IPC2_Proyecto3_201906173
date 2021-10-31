@@ -1,5 +1,5 @@
 class Peticiones:
-    def __init__(self, tiempo, referencia, nitE, nitR, valor, iva, total):#3l init es nuestro constructor
+    def __init__(self, tiempo, referencia, nitE, nitR, valor, iva, total, con):#3l init es nuestro constructor
         self.tiempo = tiempo
         self.referencia = referencia
         self.nitE = nitE
@@ -7,6 +7,7 @@ class Peticiones:
         self.valor = valor
         self.iva = iva
         self.total = total
+        self.con = con
 
 #get
     def getTiempo(self):
@@ -30,6 +31,9 @@ class Peticiones:
     def getTotal(self):
         return self.total
 
+    def getCon(self):
+        return self.con
+
 #set
     def setTiempo(self, tiempo):
         self.tiempo = tiempo
@@ -51,3 +55,6 @@ class Peticiones:
         
     def setTotal(self, total):
         self.total = total
+        
+    def setCon(self, con):
+        self.con = con

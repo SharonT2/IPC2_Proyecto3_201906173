@@ -46,37 +46,3 @@ def index(request):
         url = endpoint.format('/datos') #el endpoint hace referencia a mi url, conectando así la api y la guarda en url
         requests.post(url, data) #url de la api, y el data es el contenido de mi archivo como tal
         return redirect('index')#me devolverá al mismo método index para recargar por get
-
-
-def reports(request):
-    if request.method == 'GET':
-        date = request.GET.get('date', None)#none es un valor por defecto si no está el dato colocará None
-        code = request.GET.get('date', None)
-        context = {
-            'date':None,
-            'code':None,
-        }
-        if date is not None:#si no está en blanco 
-            context['date'] = date#a mi context date asignale el valor de date, que meta en mi caaja    
-        if code is not None:#si no está en blanco
-            context['code'] = date#a mi context code asignale el valor del code, que meta en mi caja
-        return render(request, 'reports.html', context)
-        #ESAS VARIABLES DATE Y CODE SON LAS QUE TOMO DESDE EL HTML DE DJANGO
-
-def calc(request):
-    if request.method == 'GET':
-        n1 = request.GET.get('n1', 0)
-        n2 = request.GET.get('n2', 0)
-
-        url = endpoint.format('/potencia')
-
-        potencia = requests.get(url,{
-            'n1': n1,
-            'n2': n2,
-        })#localhost:5000/potencia?n1=0  Aquí le damso esta ruta
-
-        context = {
-            'potencia': potencia.text,
-        }#devuelve el context potencia
-
-        return render(request, 'calc.html', context)

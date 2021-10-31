@@ -23,6 +23,4 @@ from web.views import * #viene de la carpeta web, y el archivo views, el import*
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('', index, name='index'),#el indiex corresponde el método de la función creada
-    path('reports/', reports, name='reports'),
-    path('calc/', calc, name='calc'),
 ]

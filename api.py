@@ -1,11 +1,16 @@
-from os import stat
+from os import error, stat
 from flask import Flask, Response, request
 from flask_cors import CORS
 from math import pow
 import xml.etree.ElementTree as ET
 from peticiones import Peticiones
+import re
+from datetime import datetime
+
 variable=""
 arreglo = []
+con=False
+con2=False
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})#permite que pueda acceder a mi api, desde direccioens externas etc.
@@ -30,7 +35,7 @@ def ruta_3():
 @app.route('/datos', methods=['GET']) #P2
 def get_datos():
 
-    archivo = open('archivo.xml', '+r')#abrimos el archivo, r+ modo lectura, el 'archivo.txt', es el nombre del archivo como tal
+    archivo = open('archivo.xml', '+r')#abrimos el archivo, r+ modo lectura, el 'archivo.txt', es el nombre del archivo cono tal
     return Response(status=200, #indica que mandará una respuesta
                     response=archivo.read(), #leerá el archivo mandado
                     content_type='text/plain')#ese archivo será un texto plano
@@ -40,6 +45,8 @@ def get_datos():
 def post_datos():
     global variable
     global arreglo
+    global con
+    global con2
     print("RESPUESTA api: ", request.data)
     #print(request.data)
     #print("DOCS: ", request.docs)
@@ -61,12 +68,48 @@ def post_datos():
     seis=""
     for r0 in raiz:
         for c in r0.iter('DTE'):#cantidad de linas de producción
+
             for r1 in c.iter('TIEMPO'):
                 uno=r1.text.strip()
                 #print("tiempo: ", r1.text.strip())
+                try:
+                    re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4}\s\d{1,2}:\d{1,2})", uno).group(0)
+                                #   dd    /    mm   /   yyyy 
+                    print("sí")
+                    print("tiempo: ", uno)
+                except:
+                    print("no")
+                    print("No, error en fecha: uno")
+                    print("tiempo: ", uno)
+                    uno=uno+"#"
+                    print("con numeral: ", uno)
+                    con=True
+
             for r1 in c.iter('REFERENCIA'):
                 dos=r1.text.strip()
                 #print("referencia: ", r1.text.strip())
+                for i in range(len(arreglo)):#busca en mi arreglo de objetos, si la referencia ya se encuentra
+                    if dos==arreglo[i].getReferencia():#si mi referencia que estoy obteniendo de mi archivo ya se encuentra registrada
+                        buscar = re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[i].getTiempo()).group(0)#obten su fecha, sin la hora
+                        for j in range(len(arreglo)):#vuelve a guscar en mi arreglo de objetos
+                            buscar2 = re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[j].getTiempo()).group(0)#y obtiene cada fecha con forme vaya pasando
+                            if buscar == buscar2:#si la fecha también está repetida, descárta la referencia
+                                con2=True#confirma qeu está repetida
+                                print("referencia", dos ," descartada por contener la misma referencia en la misma fecha")
+                                dos=dos+"#"
+                                print("Referencia con numeral: ", dos)
+                                con=True#error que indicará para el objeto, por estar duplicada
+                    else:
+                        con2=False#si no falso de nuevo
+                if con2==False:#mientras no esté duplicada
+                    try:#revisa la referencia
+                        referencia = re.match("^[A-Za-z0-9]*$", dos).group(0)#con la expresión regular
+                        print("Referencia: ", referencia)#la devuelve si todo sale bien
+                    except:#si encuentra algo que no es aceptable
+                        print("Hay un error en la referencia: ", dos)#me la devuelve para mostrarla
+                        dos=dos+"#"#le agrega un numeral para poder representar su error
+                        print("Con numeral: ", dos)#me la muestra con numeral
+                        con=True#error que indicará para el objeto por error de sintaxis
             for r1 in c.iter('NIT_EMISOR'):
                 tres=r1.text.strip()
                 #print("nitemisor: ", r1.text.strip())
@@ -82,7 +125,9 @@ def post_datos():
             for r1 in c.iter('TOTAL'):
                 siete=r1.text.strip()
                 #print("total: ", r1.text.strip())
-            arreglo.append(Peticiones(uno, dos, tres, cuatro, cinco, seis, siete))
+            arreglo.append(Peticiones(uno, dos, tres, cuatro, cinco, seis, siete, con))
+            print()
+            con=False#justo después de mandar la primera petición que va antes yo la vuelvo falsa para volver a iniciar
             #print("--------->Petición: ")
             #aquí debe ir lo de imprimir los objetos ya los hice en un aarchivo a parte y sí imprime
     for i in range(len(arreglo)):
@@ -94,6 +139,7 @@ def post_datos():
         print("Valor: ", arreglo[i].getValor())
         print("IVA: ", arreglo[i].getIva())
         print("Total: ", arreglo[i].getTotal())
+        print("Eliminar: ", arreglo[i].getCon())#si es true sí la descarta, si es false no la descarta
 
     
     #aquí masomenos terminaría de procesarlo
@@ -111,12 +157,6 @@ def prueba():
     return Response(variable)
 
 
-
-@app.route('/potencia', methods=['GET'])
-def potencia():
-    n1 = int(request.args.get('n1'))
-    n2 = int(request.args.get('n2'))
-    return str(int(pow(n1, n2)))
 
 
 @app.route('/leer', methods=['GET'])
