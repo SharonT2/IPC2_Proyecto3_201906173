@@ -3,7 +3,7 @@
         <TIEMPO> Guatemala, 15/01/2021 15:25 hrs. </TIEMPO>
         <REFERENCIA> A1990 </REFERENCIA> 
         <NIT_EMISOR> 24284955 </NIT_EMISOR>
-        <NIT_RECEPTOR> 39888320 </NIT_RECEPTOR> 
+        <NIT_RECEPTOR> 24284955 </NIT_RECEPTOR> 
         <VALOR> 100.00 </VALOR>
         <IVA> 12.00 </IVA>
         <TOTAL> 112.00 </TOTAL> 
@@ -29,6 +29,15 @@
     <DTE> 
         <TIEMPO> Guatemala, 16/01/221 15:25 hrs. </TIEMPO>
         <REFERENCIA> A1991 </REFERENCIA> 
+        <NIT_EMISOR> 7378106 </NIT_EMISOR>
+        <NIT_RECEPTOR> 8338817 </NIT_RECEPTOR> 
+        <VALOR> 100.00 </VALOR>
+        <IVA> 12.00 </IVA>
+        <TOTAL> 112.00 </TOTAL> 
+    </DTE>
+    <DTE> 
+        <TIEMPO> Guatemala, 16/01/2021 15:25 hrs. </TIEMPO>
+        <REFERENCIA> A19910 </REFERENCIA> 
         <NIT_EMISOR> 7378106 </NIT_EMISOR>
         <NIT_RECEPTOR> 8338817 </NIT_RECEPTOR> 
         <VALOR> 100.00 </VALOR>

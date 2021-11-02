@@ -38,7 +38,6 @@ def index(request):
     
     elif request.method == 'POST':
         docs = request.FILES['document']#desde aquí ese "document" es el que tengo desde la plantilla index.html
-        
         print("RUTA DESDE POOOOOOOOOOOST RUTAAAAAAAAAAAAAAAAAAAAAAAA", docs)
         #data = docs.read()
         data = str(docs)#lo puse en str por que quiero mandar solo la url para que alla pruebe hacer las validaciones
