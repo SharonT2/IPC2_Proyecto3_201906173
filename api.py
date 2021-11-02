@@ -1,4 +1,5 @@
 from os import error, stat
+from sys import version
 from flask import Flask, Response, request
 from flask_cors import CORS
 from math import pow
@@ -8,12 +9,14 @@ import re
 from datetime import datetime
 
 variable=""
-ver=False
+ver = ""
 arreglo = []
 con=False
 con2=False
 con3=False
+con4=False
 tres=""
+cuatro=""
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})#permite que pueda acceder a mi api, desde direccioens externas etc.
@@ -47,19 +50,26 @@ def get_datos():
 @app.route('/datos', methods=['POST'])#P1
 def post_datos():
     global variable
+    global ver
     global arreglo
     global con
     global con2
     global con3
-    global ver
+    global con4
     global tres
-    
-    print("RESPUESTA api: ", request.data)
-    #print(request.data)
-    #print("DOCS: ", request.docs)
-    #modifiqué acá que me mandara solo la ruta pra que yo la lea con el xml
-    str_file = request.data.decode('utf-8')#recibe los datos desde el frontend y lo almacena en una variable
-    print("Ruta del archivo mandado desde el frontend", str_file)
+    global cuatro
+
+    if request.data==b'':
+        print("Respuesta de postman: ", variable)
+        str_file = variable
+        print("Ruta del archivo mandado desde postman: ", str_file)
+    else:
+        print("RESPUESTA api: ", request.data)
+        #print(request.data)
+        #print("DOCS: ", request.docs)
+        #modifiqué acá que me mandara solo la ruta pra que yo la lea con el xml
+        str_file = request.data.decode('utf-8')#recibe los datos desde el frontend y lo almacena en una variable
+        print("Ruta del archivo mandado desde el frontend", str_file)
 
 
 #--------------------------aquí empieza xml---------------------
@@ -127,21 +137,79 @@ def post_datos():
             for r1 in c.iter('NIT_EMISOR'):
                 tres=r1.text.strip()
                 #print("nitemisor: ", r1.text.strip())
-                borrador()
+                nitE()
+            #----------------------------#3 Analizando el nit Receptor---------------------------------
             for rh in c.iter('NIT_RECEPTOR'):
                 cuatro=rh.text.strip()
                 #print("nitreceptor: ", r1.text.strip())
+                nitR()
+            #----------------------------#3 Analizando el valor---------------------------------
             for r1 in c.iter('VALOR'):
                 cinco=r1.text.strip()
+                cincoaux=cinco
                 #print("valor: ", r1.text.strip())
+                try:
+                    valorniu=re.search(r"([0-9]+[.]+[0-9]{2})", cinco).group(0)#obtiene la cadena si está correcta
+                    if valorniu == cinco:#compara si tiene la misma cantidad de decimales, ya que eso no da error
+                            print("valor aceptado: ", cinco)#si es así lo acepta
+                    else:
+                            print("Valor no aceptado, tiene más de dos decimales: ", cinco)
+                            cinco=cinco+"#"
+                            print("Valor con numeral: ", cinco)
+                            con=True#error que indicará para el objeto, por tener más de dos decimales
+                except:
+                        print("Valor no válido, sintaxis incorrecta: ", cinco)
+                        cinco=cinco+"#"
+                        print("Valor con numeral: ", cinco)
+                        con=True#error que indicará para el objeto, por tener sintaxis incorrecta
             for r1 in c.iter('IVA'):
                 seis=r1.text.strip()
                 #print("iva: ", r1.text.strip())
+                seisaux=seis
+                
             for r1 in c.iter('TOTAL'):
                 siete=r1.text.strip()
                 #print("total: ", r1.text.strip())
-            arreglo.append(Peticiones(uno, dos, tres, cuatro, cinco, seis, siete, con))
+            #------Calculando Iva*
+            try:
+                iva=(float(cincoaux)) * 0.12
+                ivaRed=round(iva, 2)#redondeando el iva
+                if float(ivaRed) == float(seis):#si el iva de resultado es igual al que me mandaron
+                    print("IVA correcto: ", seis)
+                else:
+                    print("IVA incorrecto: ", seis)
+                    seis=seis+"#"
+                    print("IVA con numeral: ", seis)
+                    con=True#error que indicará para el objeto, por tener iva mal calculado
+            except:
+                print("No se ha podido realizar calculo del iva formato de algun valor incorrecta: ", seis)
+                print("IVA incorrecto, no se pudo realizar el calculo: ", seis)
+                seis=seis+"#"
+                print("IVA con numeral: ", seis)
+                con=True#error que indicará para el objeto, por no poder calcular iva
+            
+            #------Calculando total*
+            try:
+                total = ((float(cincoaux)) * 0.12) + float(cincoaux)#sumé el iva y el valor original
+                total = round(total, 2)#redondeo el total
+                if float(total) == float(siete):#si el total de resultado es igual al que me mandaron
+                    print("Total correcto: ", siete)
+                else:
+                    print("Total incorrecto, no es igual al que mandaron: ", siete)
+                    siete=siete+"#"
+                    print("Total con numeral: ", siete)
+                    con=True#error que indicará para el objeto, por tener iva mal calculado
+            except:
+                print("No se ha podido realizar calculo del total, sintaxis de algun valor incorrecta: ", siete)
+                print("Total incorrecto, no se pudo realizar el calculo: ", siete)
+                siete=siete+"#"
+                print("Total con numeral: ", siete)
+                con=True#error que indicará para el objeto, por tener total sn calcular por tener datos con sintaxis erronea
+
+            #-----Mandando datos al objeto
             print()
+            arreglo.append(Peticiones(uno, dos, tres, cuatro, cinco, seis, siete, con))
+            print("--------------------------------------------------------------------")
             con=False#justo después de mandar la primera petición que va antes yo la vuelvo falsa para volver a iniciar
             con2=False
             #print("--------->Petición: ")
@@ -159,9 +227,9 @@ def post_datos():
 
     
     #aquí masomenos terminaría de procesarlo
-    variable="ahorasí Prueba"
+    #variable="ahorasí Prueba"
     
-    archivo2 = open('modificación.xml', 'w+')#w+ será sobre escritura, borrará y volverá a escribirlo
+    archivo2 = open('modificación.xml', 'w+')#w+ será sobre escritura, borrará y volverá a escribirlo, hay que cambiar esto 
     archivo2.write(str_file)#esa variable la manda a escribir en un archivo 
     archivo2.close()
     return Response(status=204)
@@ -174,7 +242,22 @@ def leer():
     print("Raiz: ", raiz)
     return("entra")
 
-def borrador():
+@app.route('/server', methods=['GET'])
+def server():
+    global variable
+    global ver
+    variable = "Sí entra"
+    print(variable)
+    variable = str(request.args.get('variable'))
+    print(variable)
+    return Response(variable)
+
+
+
+#--------------------------------------------Método para poder analizar y validar el nit Emisor-------------------------------------
+
+
+def nitE():
     global arreglo
     global con
     global con3
@@ -234,6 +317,67 @@ def borrador():
         con=True#error que indicará para el objeto, por tener más de 20 caracteres
     #except:
     #    print("FFFFFFFFFFFF")
+
+#--------------------------------------------Método para poder analizar y validar el nit Receptor-------------------------------------
+
+def nitR():
+    global arreglo
+    global con
+    global con4
+    global arreglo
+    global cuatro
+    #try:
+    if len(cuatro) <= 20:
+        #Verificando si el nit receptor ya se encuentra<----- 
+        for i in range(len(arreglo)):#busca en mi arreglo de objetos, si el nit emisor ya se encuentra
+            if str(cuatro)==str(arreglo[i].getNitR()):#si mi nit emisor que estoy obteniendo de mi archivo ya se encuentra registrado
+                #aqui podría ir el contador de cuántas veces se repite un nit emisor
+                if arreglo[i].getCon()==False:#y si este no contiene error alguno en todo su registro
+                    con=True#error que indicará para el objeto, por estar repetido el nit
+                    con4=True#indicara qeu mi nit ya se encuentra
+        if con4==False:#<-----Mientras mi nit no esté duplicado
+            try:
+                nit=re.search(r"(^[0-9]+$)", cuatro).group(0)#obtiene la cadena si está correcta
+                #verificando nit<--------
+                car=len(nit)#obteniendo la cantidad de caracteres
+                car=car-2#le quito una posición por que le primero no cuenta
+                c=car
+                c2=2
+                
+                suma=0
+                for i in nit:
+                    if c>=0:#mientras no estés en la posición del primero de derecha a izquerda <---
+                        x=int(nit[c])*c2#multiplica por su posición
+                        #print(nit[c], c2, "= ", x )#imprimi,
+                        suma=suma+x#sumar los resultados de las multiplicacionies
+                        c2+=1
+                        c=c-1
+                mod=suma%11#primer mod a la suma
+                v=11-mod#le resto a 11 el primer mod
+                k=v%11#a la resta anterior le aplico también el mod
+                if k==int(nit[-1]):#si el mod obtenido, es iugal al digito con el que tengo que verigicarlo, entonces aceptalo
+                    print("El nit: ", nit, " es válido VERIFICADO")
+                else:
+                    print("Hay un error en el nit receptor, no es aceptable su verificador: ", cuatro)#me la devuelve para mostrarla
+                    cuatro=cuatro+"#"#le agrega un numeral para poder representar su error
+                    print("Con numeral: ", cuatro)#me la muestra con numeral
+                    con=True#error que indicará para el objeto por error de verificador
+                #print("Sigueeeeeeeeeeeeeeeeeeee")
+            except: 
+                print("Hay un error en el nit receptor, no es aceptable su sintaxis: ", cuatro)
+                cuatro=cuatro+"#"#le agrega un numeral para poder representar su error
+                print("Con numeral: ", cuatro)#me la muestra con numeral
+                con=True#error que indicará para el objeto por error de verificador
+        else:
+            print("El nit es incorrecto por que ya se encuentra registrado: ", cuatro)
+            cuatro=cuatro+"#"#le agrega un numeral para poder representar su error
+            print("Con numeral: ", cuatro)#me la muestra con numeral
+            con=True#error que indicará para el objeto por error de verificador
+    else:
+        print("Este nit receptor contiene más de 20 caracteres: ", cuatro)
+        cuatro=cuatro+"#"#agrego el error al nit para identificar
+        print("Nit receptor con numeral: ", cuatro)
+        con=True#error que indicará para el objeto, por tener más de 20 caracteres
 
 if __name__=="__main__":
     app.run(debug=True)

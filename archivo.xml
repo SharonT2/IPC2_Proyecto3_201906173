@@ -44,4 +44,13 @@
         <IVA> 12.00 </IVA>
         <TOTAL> 112.00 </TOTAL> 
     </DTE>
+    <DTE> 
+        <TIEMPO> Guatemala, 10/01/2021 15:25 hrs. </TIEMPO>
+        <REFERENCIA> B19910 </REFERENCIA> 
+        <NIT_EMISOR> 7378106 </NIT_EMISOR>
+        <NIT_RECEPTOR> 8338817 </NIT_RECEPTOR> 
+        <VALOR> 100.00 </VALOR>
+        <IVA> 2.00 </IVA>
+        <TOTAL> 112.00 </TOTAL> 
+    </DTE>
 </SOLICITUD_AUTORIZACION> 
