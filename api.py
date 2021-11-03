@@ -17,6 +17,9 @@ con3=False
 con4=False
 tres=""
 cuatro=""
+cErr=0
+cErr2=0
+x=1
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})#permite que pueda acceder a mi api, desde direccioens externas etc.
@@ -58,6 +61,9 @@ def post_datos():
     global con4
     global tres
     global cuatro
+    global cErr
+    global cErr2
+    global x
 
     if request.data==b'':
         print("Respuesta de postman: ", variable)
@@ -226,11 +232,99 @@ def post_datos():
         print("Eliminar: ", arreglo[i].getCon())#si es true sí la descarta, si es false no la descarta
 
     
+    #-----Contadores de los errores
+    cErr=0
+    for i in range(len(arreglo)):#busca en mi arreglo de objetos, si la referencia ya se encuentra
+        if str(arreglo[i].getNitE()[-1])=="#":#si encuentra un error en nit emisor
+            cErr+=1#aumenta el contador 
+
+    cErr2=0
+    for i in range(len(arreglo)):#busca en mi arreglo de objetos, si la referencia ya se encuentra
+        if str(arreglo[i].getNitR()[-1])=="#":#si encuentra un error en nit receptor
+            cErr2+=1#aumenta el contador
+
+    cErr3=0#no la puse global, a ver qué tal funciona
+    for i in range(len(arreglo)):
+        if str(arreglo[i].getIva()[-1])=="#":#si encuentra un error en iva
+            cErr3+=1#aumenta el contador
+    
+    cErr4=0#no la puse global, a ver qué tal funciona
+    for i in range(len(arreglo)):
+        if str(arreglo[i].getTotal()[-1]) == "#":#si encuentra un error en total
+            cErr4+=1#aumenta el contador
+    
+    cErr5=0#no la puse global, a ver qué tal funciona
+    for i in range(len(arreglo)):
+        if str(arreglo[i].getReferencia()[-1]) == "#":#si encuentra un error en total
+            cErr5+=1#aumenta el contador
+    
+
+    #Facturas correctas
+    cErr6=0
+    for i in range(len(arreglo)):
+        if arreglo[i].getCon() == False:#si encuentra un error en el objeto, factura
+            cErr6+=1
+    
+    #cantidad emisores
+    cErr7=0
+    for i in range(len(arreglo)):
+        if str(arreglo[i].getNitE()[-1]) != "#":#si encuentra un error en el objeto, factura
+            cErr7+=1
+    
+    #cantidad receptores
+    cErr8=0
+    for i in range(len(arreglo)):
+        if str(arreglo[i].getNitR()[-1]) != "#":#si encuentra un error en el objeto, factura
+            cErr8+=1
+
+
     #aquí masomenos terminaría de procesarlo
     #variable="ahorasí Prueba"
-    
+    fechaAc = datetime.today().strftime('%d/%m/%Y')
     archivo2 = open('modificación.xml', 'w+')#w+ será sobre escritura, borrará y volverá a escribirlo, hay que cambiar esto 
-    archivo2.write(str_file)#esa variable la manda a escribir en un archivo 
+    archivo2.write("<LISTAAUTORIZACIONES>\n")
+    archivo2.write("    <AUTORIZACION>\n")
+    archivo2.write("        <FECHA>" + str(fechaAc)+ "</FECHA>\n")
+    archivo2.write("        <FACTURAS_RECIBIDAS>" + str(len(arreglo))+ "</FACTURAS_RECIBIDAS>\n")
+    archivo2.write("        <ERRORES>\n")
+    archivo2.write("            <NIT_EMISOR>" + str(cErr) + "</NIT_EMISOR>\n")
+    archivo2.write("            <NIT_RECEPTOR>" + str(cErr2) + "</NIT_EMISOR>\n")
+    archivo2.write("            <IVA>" + str(cErr3) + "</IVA>\n")
+    archivo2.write("            <TOTAL>" + str(cErr4) + "</TOTAL>\n")
+    archivo2.write("            <REFERENCIA_DUPLICADA>" + str(cErr5) + "</REFERENCIA_DUPLICADA>\n")
+    archivo2.write("        </ERRORES>\n")
+    archivo2.write("        <FACTURAS_CORRECTAS>" + str(cErr6) + "</FACTURAS_CORRECTAS>\n")
+    archivo2.write("        <CANTIDAD_EMISORES>" + str(cErr7) + "</CANTIDAD_EMISORES>\n")
+    archivo2.write("        <CANTIDAD_RECEPTORES>" + str(cErr8) + "</CANTIDAD_RECEPTORES>\n")
+    archivo2.write("        <LISTADO_AUTORIZACIONES>\n")
+
+    r=8
+    for i in range(len(arreglo)):
+        if arreglo[i].getCon() == False:#si no tiene error esa petición
+            año=re.search(r"(\d{4})", arreglo[i].getTiempo()).group(0)
+            mes=re.search(r"([-/]\d{2})", arreglo[i].getTiempo()).group(0)
+            mes=mes[1:]
+            dia=re.search(r"(\d{2})", arreglo[i].getTiempo()).group(0)
+            c=""#reseteo el codigo
+            r=r-len(str(x))
+            for j in range(r):
+                c=c+"0"
+            c=c+str(x)
+            #print("Correlativo: ", c)
+            codigo=año+mes+dia+c
+            x+=1#subo el correlativo
+            
+            archivo2.write("            <APROBACION>\n")
+            archivo2.write("                <NIT_EMISOR ref=\""+ str(arreglo[i].getReferencia()) + "\">" + str(arreglo[i].getNitE()) + "</NIT_EMISOR>\n")
+            archivo2.write("                <CODIGO_APROBACION>" + str(codigo) + "</CODIGO_APROBACION>\n")
+            archivo2.write("                <NIT_RECEPTOR"+ str(arreglo[i].getNitR()) + "</NIT_RECEPTOR>\n")
+            archivo2.write("                <VALOR>" + str(arreglo[i].getValor()) + "</VALOR>\n")
+            archivo2.write("            </APROBACION>\n")
+
+    archivo2.write("            <TOTAL_APROBACIONES>" + str(cErr6) + "</TOTAL_APROBACIONES>\n")
+    archivo2.write("        </LISTADO_AUTORIZACIONES>\n")
+    archivo2.write("    </AUTORIZACION>\n")
+    archivo2.write("</LISTAAUTORIZACIONES>\n")
     archivo2.close()
     return Response(status=204)
 
