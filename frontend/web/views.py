@@ -7,6 +7,8 @@ import requests
 
 endpoint = 'http://localhost:5000{}' #variable corriendo en el puerto 5000
 
+arreglo=[]
+
 def index(request):
     if request.method == 'GET':
         url = endpoint.format('/datos')#manda a las llaves anteriores, el valor que se le pase,  desde endoint es como poner http://localhost:5000
@@ -27,12 +29,14 @@ def index(request):
         archivo=archivo.read()
         print("Archivo frontend: ", archivo)
         
+        fecha=['fecha1', 'fecha2', 'fecha3']
 
         #el objeto data contiene la info y la pasa en un json
         context = {#diccionario
             'data': data.text, #.text par aenviar el texto como tal
             'data2': data2.text,
             'archivo': archivo,
+            'fecha1': fecha,
         }
         return render(request, 'index.html', context)
     
@@ -45,3 +49,9 @@ def index(request):
         url = endpoint.format('/datos') #el endpoint hace referencia a mi url, conectando así la api y la guarda en url
         requests.post(url, data) #url de la api, y el data es el contenido de mi archivo como tal
         return redirect('index')#me devolverá al mismo método index para recargar por get
+
+def prueba(request):
+    return redirect('hola')
+
+def reporte():
+    global arreglo

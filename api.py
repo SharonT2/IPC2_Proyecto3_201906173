@@ -8,6 +8,7 @@ from peticiones import Peticiones
 import re
 from datetime import datetime
 
+
 variable=""
 ver = ""
 arreglo = []
@@ -20,6 +21,8 @@ cuatro=""
 cErr=0
 cErr2=0
 x=1
+rango=[]
+rangox=[]
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})#permite que pueda acceder a mi api, desde direccioens externas etc.
@@ -43,7 +46,6 @@ def ruta_3():
 #PARA QEU ME DEVUELVA LO QUE TENGO EN EL ARCHIVO 
 @app.route('/datos', methods=['GET']) #P2
 def get_datos():
-
     archivo = open('archivo.xml', '+r')#abrimos el archivo, r+ modo lectura, el 'archivo.txt', es el nombre del archivo cono tal
     return Response(status=200, #indica que mandará una respuesta
                     response=archivo.read(), #leerá el archivo mandado
@@ -64,6 +66,8 @@ def post_datos():
     global cErr
     global cErr2
     global x
+    global rango
+    global rangox
 
     if request.data==b'':
         print("Respuesta de postman: ", variable)
@@ -232,98 +236,171 @@ def post_datos():
         print("Eliminar: ", arreglo[i].getCon())#si es true sí la descarta, si es false no la descarta
 
     
-    #-----Contadores de los errores
-    cErr=0
-    for i in range(len(arreglo)):#busca en mi arreglo de objetos, si la referencia ya se encuentra
-        if str(arreglo[i].getNitE()[-1])=="#":#si encuentra un error en nit emisor
-            cErr+=1#aumenta el contador 
+    for i in range(len(arreglo)):
+        if arreglo[i].getCon() == False:#las ue no tengan errores
+            try:
+                fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[i].getTiempo()).group(0)#obtén cada fecha
+                if fecha not in rango:#si no la he guardado antes
+                    rango.append(fecha)
+            except:
+                print()
+        
+    for i in range(len(arreglo)):#almacenando todas las fechas
+        if str(arreglo[i].getTiempo()[-1])!="#":#menos las fechas que tienen errores
+            try:
+                fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[i].getTiempo()).group(0)#obtén cada fecha
+                rangox.append(fecha)
+            except:
+                print()
 
-    cErr2=0
-    for i in range(len(arreglo)):#busca en mi arreglo de objetos, si la referencia ya se encuentra
-        if str(arreglo[i].getNitR()[-1])=="#":#si encuentra un error en nit receptor
-            cErr2+=1#aumenta el contador
-
-    cErr3=0#no la puse global, a ver qué tal funciona
-    for i in range(len(arreglo)):
-        if str(arreglo[i].getIva()[-1])=="#":#si encuentra un error en iva
-            cErr3+=1#aumenta el contador
-    
-    cErr4=0#no la puse global, a ver qué tal funciona
-    for i in range(len(arreglo)):
-        if str(arreglo[i].getTotal()[-1]) == "#":#si encuentra un error en total
-            cErr4+=1#aumenta el contador
-    
-    cErr5=0#no la puse global, a ver qué tal funciona
-    for i in range(len(arreglo)):
-        if str(arreglo[i].getReferencia()[-1]) == "#":#si encuentra un error en total
-            cErr5+=1#aumenta el contador
-    
-
-    #Facturas correctas
-    cErr6=0
-    for i in range(len(arreglo)):
-        if arreglo[i].getCon() == False:#si encuentra un error en el objeto, factura
-            cErr6+=1
-    
-    #cantidad emisores
-    cErr7=0
-    for i in range(len(arreglo)):
-        if str(arreglo[i].getNitE()[-1]) != "#":#si encuentra un error en el objeto, factura
-            cErr7+=1
-    
-    #cantidad receptores
-    cErr8=0
-    for i in range(len(arreglo)):
-        if str(arreglo[i].getNitR()[-1]) != "#":#si encuentra un error en el objeto, factura
-            cErr8+=1
-
-
+    #-----------------------------------------Escribiendo en archivo de salida-----
     #aquí masomenos terminaría de procesarlo
     #variable="ahorasí Prueba"
     fechaAc = datetime.today().strftime('%d/%m/%Y')
     archivo2 = open('modificación.xml', 'w+')#w+ será sobre escritura, borrará y volverá a escribirlo, hay que cambiar esto 
     archivo2.write("<LISTAAUTORIZACIONES>\n")
-    archivo2.write("    <AUTORIZACION>\n")
-    archivo2.write("        <FECHA>" + str(fechaAc)+ "</FECHA>\n")
-    archivo2.write("        <FACTURAS_RECIBIDAS>" + str(len(arreglo))+ "</FACTURAS_RECIBIDAS>\n")
-    archivo2.write("        <ERRORES>\n")
-    archivo2.write("            <NIT_EMISOR>" + str(cErr) + "</NIT_EMISOR>\n")
-    archivo2.write("            <NIT_RECEPTOR>" + str(cErr2) + "</NIT_EMISOR>\n")
-    archivo2.write("            <IVA>" + str(cErr3) + "</IVA>\n")
-    archivo2.write("            <TOTAL>" + str(cErr4) + "</TOTAL>\n")
-    archivo2.write("            <REFERENCIA_DUPLICADA>" + str(cErr5) + "</REFERENCIA_DUPLICADA>\n")
-    archivo2.write("        </ERRORES>\n")
-    archivo2.write("        <FACTURAS_CORRECTAS>" + str(cErr6) + "</FACTURAS_CORRECTAS>\n")
-    archivo2.write("        <CANTIDAD_EMISORES>" + str(cErr7) + "</CANTIDAD_EMISORES>\n")
-    archivo2.write("        <CANTIDAD_RECEPTORES>" + str(cErr8) + "</CANTIDAD_RECEPTORES>\n")
-    archivo2.write("        <LISTADO_AUTORIZACIONES>\n")
 
-    r=8
-    for i in range(len(arreglo)):
-        if arreglo[i].getCon() == False:#si no tiene error esa petición
-            año=re.search(r"(\d{4})", arreglo[i].getTiempo()).group(0)
-            mes=re.search(r"([-/]\d{2})", arreglo[i].getTiempo()).group(0)
-            mes=mes[1:]
-            dia=re.search(r"(\d{2})", arreglo[i].getTiempo()).group(0)
-            c=""#reseteo el codigo
-            r=r-len(str(x))
-            for j in range(r):
-                c=c+"0"
-            c=c+str(x)
-            #print("Correlativo: ", c)
-            codigo=año+mes+dia+c
-            x+=1#subo el correlativo
-            
-            archivo2.write("            <APROBACION>\n")
-            archivo2.write("                <NIT_EMISOR ref=\""+ str(arreglo[i].getReferencia()) + "\">" + str(arreglo[i].getNitE()) + "</NIT_EMISOR>\n")
-            archivo2.write("                <CODIGO_APROBACION>" + str(codigo) + "</CODIGO_APROBACION>\n")
-            archivo2.write("                <NIT_RECEPTOR"+ str(arreglo[i].getNitR()) + "</NIT_RECEPTOR>\n")
-            archivo2.write("                <VALOR>" + str(arreglo[i].getValor()) + "</VALOR>\n")
-            archivo2.write("            </APROBACION>\n")
+    
+    for i in rango:
+        archivo2.write("    <AUTORIZACION>\n")
+        archivo2.write("        <FECHA>" + str(i)+ "</FECHA>\n")
+        fr=rangox.count(i)#------>total recibidas
+        cErr=0 
+        for p0 in range(len(arreglo)):#------>errores en nit emisor
+#            if arreglo[p0].getCon() == True:#las que tengan errores
+            if str(arreglo[p0].getTiempo()[-1])!="#":#pero la fechas in error
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p0].getTiempo()).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        if str(arreglo[p0].getNitE()[-1])=="#":#si encuentra un error en nit emisor
+                                cErr+=1#aumenta el contador
+                except:
+                    print()
+        cErr2=0 
+        for p1 in range(len(arreglo)):#------>errores en nit receptor
+#            if arreglo[p1].getCon() == True:#las que tengan errores
+            if str(arreglo[p1].getTiempo()[-1])!="#":#pero la fechas in error
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p1].getTiempo()).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        if str(arreglo[p1].getNitR()[-1])=="#":#si encuentra un error en nit receptor
+                                cErr2+=1#aumenta el contador
+                except:
+                    print()
+        cErr3=0 
+        for p1 in range(len(arreglo)):#------>errores en iva
+#            if arreglo[p1].getCon() == True:#las que tengan errores
+            if str(arreglo[p1].getTiempo()[-1])!="#":#pero la fechas in error
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p1].getTiempo()).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        if str(arreglo[p1].getIva()[-1])=="#":#si encuentra un error en nit iva
+                                cErr3+=1#aumenta el contador
+                except:
+                    print()
+        cErr4=0 
+        for p1 in range(len(arreglo)):#------>errores en total
+            if str(arreglo[p0].getTiempo()[-1])!="#":#pero la fechas in error
+                cadena=arreglo[p1].getTiempo()
+                print(cadena)
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", cadena).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        if str(arreglo[p1].getTotal()[-1])=="#":#si encuentra un error en total
+                                cErr4+=1#aumenta el contador
+                except:
+                    print()
+        cErr5=0 
+        for p1 in range(len(arreglo)):#------>errores en rerferencia
+#            if arreglo[p1].getCon() == True:#las que tengan errores
+            if str(arreglo[p0].getTiempo()[-1])!="#":#pero la fechas in error
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p1].getTiempo()).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        if str(arreglo[p1].getReferencia()[-1])=="#":#si encuentra un error en referencia
+                                cErr5+=1#aumenta el contador
+                except:
+                    print()
+        cErr6=0 #facturas correctas
+        for p1 in range(len(arreglo)):#------>
+            if arreglo[p1].getCon() == False:#las que no tengan errores
+                fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p1].getTiempo()).group(0)#obten la fecha en cada posicion
+                if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                    cErr6+=1
+        cErr7=0#emisores correctos
+        for p1 in range(len(arreglo)):#------>
+            if str(arreglo[p1].getNitE()[-1])!="#":#si no hay error en emisores
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p1].getTiempo()).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        cErr7+=1
+                except:
+                    print()
+        
+        cErr7=0#receptores correctos
+        for p1 in range(len(arreglo)):#------>
+            if str(arreglo[p1].getNitR()[-1])!="#":#si no hay error en emisores
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p1].getTiempo()).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        cErr7+=1
+                except:
+                    print()
+        
+        cErr8=0#receptores correctos
+        for p1 in range(len(arreglo)):#------>
+            if str(arreglo[p1].getNitE()[-1])!="#":#si no hay error en emisores
+                try:
+                    fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p1].getTiempo()).group(0)#obten la fecha en cada posicion
+                    if i == fecha:#qeu tengan la misma fecha en la que estoy viendo
+                        cErr8+=1
+                except:
+                    print()
 
-    archivo2.write("            <TOTAL_APROBACIONES>" + str(cErr6) + "</TOTAL_APROBACIONES>\n")
-    archivo2.write("        </LISTADO_AUTORIZACIONES>\n")
-    archivo2.write("    </AUTORIZACION>\n")
+        archivo2.write("        <FACTURAS_RECIBIDAS>" + str(fr)+ "</FACTURAS_RECIBIDAS>\n")
+        archivo2.write("        <ERRORES>\n")
+        archivo2.write("            <NIT_EMISOR>" + str(cErr) + "</NIT_EMISOR>\n")
+        archivo2.write("            <NIT_RECEPTOR>" + str(cErr2) + "</NIT_RECEPTOR>\n")
+        archivo2.write("            <IVA>" + str(cErr3) + "</IVA>\n")
+        archivo2.write("            <TOTAL>" + str(cErr4) + "</TOTAL>\n")
+        archivo2.write("            <REFERENCIA_DUPLICADA>" + str(cErr5) + "</REFERENCIA_DUPLICADA>\n")
+        archivo2.write("        </ERRORES>\n")
+        archivo2.write("        <FACTURAS_CORRECTAS>" + str(cErr6) + "</FACTURAS_CORRECTAS>\n")
+        archivo2.write("        <CANTIDAD_EMISORES>" + str(cErr7) + "</CANTIDAD_EMISORES>\n")
+        archivo2.write("        <CANTIDAD_RECEPTORES>" + str(cErr8) + "</CANTIDAD_RECEPTORES>\n")
+        archivo2.write("        <LISTADO_AUTORIZACIONES>\n")
+
+        for p in range(len(arreglo)):
+            if arreglo[p].getCon() == False:#las ue no tengan errores
+                fecha=re.search(r"(\d{1,2}[-/]\d{1,2}[-/]\d{4})", arreglo[p].getTiempo()).group(0)
+                if i == fecha:
+                    print("Igualdad: ", i, fecha)
+                    r=8
+                    año=re.search(r"(\d{4})", arreglo[p].getTiempo()).group(0)
+                    mes=re.search(r"([-/]\d{2})", arreglo[p].getTiempo()).group(0)
+                    mes=mes[1:]
+                    dia=re.search(r"(\d{2})", arreglo[p].getTiempo()).group(0)
+                    c=""#reseteo el codigo
+                    r=r-len(str(x))
+                    for j in range(r):
+                        c=c+"0"
+                    c=c+str(x)
+                    #print("Correlativo: ", c)
+                    codigo=año+mes+dia+c
+                    x+=1#subo el correlativo
+                    
+                    archivo2.write("            <APROBACION>\n")
+                    archivo2.write("                <NIT_EMISOR ref=\""+ str(arreglo[p].getReferencia()) + "\">" + str(arreglo[p].getNitE()) + "</NIT_EMISOR>\n")
+                    archivo2.write("                <CODIGO_APROBACION>" + str(codigo) + "</CODIGO_APROBACION>\n")
+                    archivo2.write("                <NIT_RECEPTOR"+ str(arreglo[p].getNitR()) + "</NIT_RECEPTOR>\n")
+                    archivo2.write("                <VALOR>" + str(arreglo[p].getValor()) + "</VALOR>\n")
+                    archivo2.write("            </APROBACION>\n")
+
+        archivo2.write("            <TOTAL_APROBACIONES>" + str(cErr6) + "</TOTAL_APROBACIONES>\n")
+        archivo2.write("        </LISTADO_AUTORIZACIONES>\n")
+        archivo2.write("    </AUTORIZACION>\n")
+        x=1
+
     archivo2.write("</LISTAAUTORIZACIONES>\n")
     archivo2.close()
     return Response(status=204)
@@ -352,58 +429,57 @@ def server():
 
 
 def nitE():
-    global arreglo
     global con
     global con3
     global arreglo
     global tres
     #try:
     if len(tres) <= 20:
-        #Verificando si el nit receptor ya se encuentra<----- 
-        for i in range(len(arreglo)):#busca en mi arreglo de objetos, si el nit emisor ya se encuentra
-            if str(tres)==str(arreglo[i].getNitE()):#si mi nit emisor que estoy obteniendo de mi archivo ya se encuentra registrado
-                #aqui podría ir el contador de cuántas veces se repite un nit emisor
-                if arreglo[i].getCon()==False:#y si este no contiene error alguno en todo su registro
-                    con=True#error que indicará para el objeto, por estar repetido el nit
-                    con3=True#indicara qeu mi nit ya se encuentra
-        if con3==False:#<-----Mientras mi nit no esté duplicado
-            try:
-                nit=re.search(r"(^[0-9]+$)", tres).group(0)#obtiene la cadena si está correcta
-                #verificando nit<--------
-                car=len(nit)#obteniendo la cantidad de caracteres
-                car=car-2#le quito una posición por que le primero no cuenta
-                c=car
-                c2=2
-                
-                suma=0
-                for i in nit:
-                    if c>=0:#mientras no estés en la posición del primero de derecha a izquerda <---
-                        x=int(nit[c])*c2#multiplica por su posición
-                        #print(nit[c], c2, "= ", x )#imprimi,
-                        suma=suma+x#sumar los resultados de las multiplicacionies
-                        c2+=1
-                        c=c-1
-                mod=suma%11#primer mod a la suma
-                v=11-mod#le resto a 11 el primer mod
-                k=v%11#a la resta anterior le aplico también el mod
-                if k==int(nit[-1]):#si el mod obtenido, es iugal al digito con el que tengo que verigicarlo, entonces aceptalo
-                    print("El nit: ", nit, " es válido VERIFICADO")
-                else:
-                    print("Hay un error en el nit emisor, no es aceptable su verificador: ", tres)#me la devuelve para mostrarla
-                    tres=tres+"#"#le agrega un numeral para poder representar su error
-                    print("Con numeral: ", tres)#me la muestra con numeral
-                    con=True#error que indicará para el objeto por error de verificador
-                #print("Sigueeeeeeeeeeeeeeeeeeee")
-            except:
-                print("Hay un error en el nit emisor, no es aceptable su sintaxis: ", tres)
+##        #Verificando si el nit receptor ya se encuentra<----- 
+##        for i in range(len(arreglo)):#busca en mi arreglo de objetos, si el nit emisor ya se encuentra
+##            if str(tres)==str(arreglo[i].getNitE()):#si mi nit emisor que estoy obteniendo de mi archivo ya se encuentra registrado
+##                #aqui podría ir el contador de cuántas veces se repite un nit emisor
+##                if arreglo[i].getCon()==False:#y si este no contiene error alguno en todo su registro
+##                    con=True#error que indicará para el objeto, por estar repetido el nit
+##                    con3=True#indicara qeu mi nit ya se encuentra
+##        if con3==False:#<-----Mientras mi nit no esté duplicado
+        try:
+            nit=re.search(r"(^[0-9]+$)", tres).group(0)#obtiene la cadena si está correcta
+            #verificando nit<--------
+            car=len(nit)#obteniendo la cantidad de caracteres
+            car=car-2#le quito una posición por que le primero no cuenta
+            c=car
+            c2=2
+            
+            suma=0
+            for i in nit:
+                if c>=0:#mientras no estés en la posición del primero de derecha a izquerda <---
+                    x=int(nit[c])*c2#multiplica por su posición
+                    #print(nit[c], c2, "= ", x )#imprimi,
+                    suma=suma+x#sumar los resultados de las multiplicacionies
+                    c2+=1
+                    c=c-1
+            mod=suma%11#primer mod a la suma
+            v=11-mod#le resto a 11 el primer mod
+            k=v%11#a la resta anterior le aplico también el mod
+            if k==int(nit[-1]):#si el mod obtenido, es iugal al digito con el que tengo que verigicarlo, entonces aceptalo
+                print("El nit: ", nit, " es válido VERIFICADO")
+            else:
+                print("Hay un error en el nit emisor, no es aceptable su verificador: ", tres)#me la devuelve para mostrarla
                 tres=tres+"#"#le agrega un numeral para poder representar su error
                 print("Con numeral: ", tres)#me la muestra con numeral
                 con=True#error que indicará para el objeto por error de verificador
-        else:
-            print("El nit es incorrecto por que ya se encuentra registrado: ", tres)
+            #print("Sigueeeeeeeeeeeeeeeeeeee")
+        except:
+            print("Hay un error en el nit emisor, no es aceptable su sintaxis: ", tres)
             tres=tres+"#"#le agrega un numeral para poder representar su error
             print("Con numeral: ", tres)#me la muestra con numeral
             con=True#error que indicará para el objeto por error de verificador
+##        else:
+##            print("El nit es incorrecto por que ya se encuentra registrado: ", tres)
+##            tres=tres+"#"#le agrega un numeral para poder representar su error
+##            print("Con numeral: ", tres)#me la muestra con numeral
+##            con=True#error que indicará para el objeto por error de verificador
     else:
         print("Este nit emisor contiene más de 20 caracteres: ", tres)
         tres=tres+"#"#agrego el error al nit para identificar
@@ -422,56 +498,86 @@ def nitR():
     global cuatro
     #try:
     if len(cuatro) <= 20:
-        #Verificando si el nit receptor ya se encuentra<----- 
-        for i in range(len(arreglo)):#busca en mi arreglo de objetos, si el nit emisor ya se encuentra
-            if str(cuatro)==str(arreglo[i].getNitR()):#si mi nit emisor que estoy obteniendo de mi archivo ya se encuentra registrado
-                #aqui podría ir el contador de cuántas veces se repite un nit emisor
-                if arreglo[i].getCon()==False:#y si este no contiene error alguno en todo su registro
-                    con=True#error que indicará para el objeto, por estar repetido el nit
-                    con4=True#indicara qeu mi nit ya se encuentra
-        if con4==False:#<-----Mientras mi nit no esté duplicado
-            try:
-                nit=re.search(r"(^[0-9]+$)", cuatro).group(0)#obtiene la cadena si está correcta
-                #verificando nit<--------
-                car=len(nit)#obteniendo la cantidad de caracteres
-                car=car-2#le quito una posición por que le primero no cuenta
-                c=car
-                c2=2
-                
-                suma=0
-                for i in nit:
-                    if c>=0:#mientras no estés en la posición del primero de derecha a izquerda <---
-                        x=int(nit[c])*c2#multiplica por su posición
-                        #print(nit[c], c2, "= ", x )#imprimi,
-                        suma=suma+x#sumar los resultados de las multiplicacionies
-                        c2+=1
-                        c=c-1
-                mod=suma%11#primer mod a la suma
-                v=11-mod#le resto a 11 el primer mod
-                k=v%11#a la resta anterior le aplico también el mod
-                if k==int(nit[-1]):#si el mod obtenido, es iugal al digito con el que tengo que verigicarlo, entonces aceptalo
-                    print("El nit: ", nit, " es válido VERIFICADO")
-                else:
-                    print("Hay un error en el nit receptor, no es aceptable su verificador: ", cuatro)#me la devuelve para mostrarla
-                    cuatro=cuatro+"#"#le agrega un numeral para poder representar su error
-                    print("Con numeral: ", cuatro)#me la muestra con numeral
-                    con=True#error que indicará para el objeto por error de verificador
-                #print("Sigueeeeeeeeeeeeeeeeeeee")
-            except: 
-                print("Hay un error en el nit receptor, no es aceptable su sintaxis: ", cuatro)
+##        #Verificando si el nit receptor ya se encuentra<----- 
+##        for i in range(len(arreglo)):#busca en mi arreglo de objetos, si el nit emisor ya se encuentra
+##            if str(cuatro)==str(arreglo[i].getNitR()):#si mi nit emisor que estoy obteniendo de mi archivo ya se encuentra registrado
+##                #aqui podría ir el contador de cuántas veces se repite un nit emisor
+##                if arreglo[i].getCon()==False:#y si este no contiene error alguno en todo su registro
+##                    con=True#error que indicará para el objeto, por estar repetido el nit
+##                    con4=True#indicara qeu mi nit ya se encuentra
+##        if con4==False:#<-----Mientras mi nit no esté duplicado
+        try:
+            nit=re.search(r"(^[0-9]+$)", cuatro).group(0)#obtiene la cadena si está correcta
+            #verificando nit<--------
+            car=len(nit)#obteniendo la cantidad de caracteres
+            car=car-2#le quito una posición por que le primero no cuenta
+            c=car
+            c2=2
+            
+            suma=0
+            for i in nit:
+                if c>=0:#mientras no estés en la posición del primero de derecha a izquerda <---
+                    x=int(nit[c])*c2#multiplica por su posición
+                    #print(nit[c], c2, "= ", x )#imprimi,
+                    suma=suma+x#sumar los resultados de las multiplicacionies
+                    c2+=1
+                    c=c-1
+            mod=suma%11#primer mod a la suma
+            v=11-mod#le resto a 11 el primer mod
+            k=v%11#a la resta anterior le aplico también el mod
+            if k==int(nit[-1]):#si el mod obtenido, es iugal al digito con el que tengo que verigicarlo, entonces aceptalo
+                print("El nit: ", nit, " es válido VERIFICADO")
+            else:
+                print("Hay un error en el nit receptor, no es aceptable su verificador: ", cuatro)#me la devuelve para mostrarla
                 cuatro=cuatro+"#"#le agrega un numeral para poder representar su error
                 print("Con numeral: ", cuatro)#me la muestra con numeral
                 con=True#error que indicará para el objeto por error de verificador
-        else:
-            print("El nit es incorrecto por que ya se encuentra registrado: ", cuatro)
+            #print("Sigueeeeeeeeeeeeeeeeeeee")
+        except: 
+            print("Hay un error en el nit receptor, no es aceptable su sintaxis: ", cuatro)
             cuatro=cuatro+"#"#le agrega un numeral para poder representar su error
             print("Con numeral: ", cuatro)#me la muestra con numeral
             con=True#error que indicará para el objeto por error de verificador
+##        else:
+##            print("El nit es incorrecto por que ya se encuentra registrado: ", cuatro)
+##            cuatro=cuatro+"#"#le agrega un numeral para poder representar su error
+##            print("Con numeral: ", cuatro)#me la muestra con numeral
+##            con=True#error que indicará para el objeto por error de verificador
     else:
         print("Este nit receptor contiene más de 20 caracteres: ", cuatro)
         cuatro=cuatro+"#"#agrego el error al nit para identificar
         print("Nit receptor con numeral: ", cuatro)
         con=True#error que indicará para el objeto, por tener más de 20 caracteres
+
+@app.route('/borrar', methods=['GET'])
+def borrar():
+    global arreglo
+    archivo2 = open('modificación.xml', 'w+')
+    archivo2.close()
+    print("antes: ", arreglo)
+    for i in arreglo:
+        print(i) 
+        del i
+    
+    for i in arreglo:
+        print("de: ", i) 
+        del i
+    for i in range(len(arreglo)):
+        print("------------>Petición: ", i)
+        print("Tiempo: ", arreglo[i].getTiempo())
+        print("Referencia: ", arreglo[i].getReferencia())
+        print("NitE: ", arreglo[i].getNitE())
+        print("NitR: ", arreglo[i].getNitR())
+        print("Valor: ", arreglo[i].getValor())
+        print("IVA: ", arreglo[i].getIva())
+        print("Total: ", arreglo[i].getTotal())
+        print("Eliminar: ", arreglo[i].getCon())
+
+
+    del arreglo[:]
+    print("queda: ", arreglo)
+    return("Base de datos formateada")
+
 
 if __name__=="__main__":
     app.run(debug=True)

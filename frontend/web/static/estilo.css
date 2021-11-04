@@ -1,0 +1,110 @@
+body{
+    background-color: rgb(83, 110, 108);
+}
+
+#Entrada{
+    width: 400px;
+    float: left;
+    margin-top: 50px;
+    margin-left: 30px;
+}
+
+#Salida{
+    width: 730px;
+    float: right;
+    margin-top: 50px;
+    margin-right: -100px;
+}
+
+#formulario{
+    margin-left: 450px;
+}
+
+h1{
+    margin-left: 450px;
+    margin-right: 400px;
+    color: rgb(29, 32, 32);
+}
+
+h2{
+    margin-left: 200px;
+    color: rgb(29, 32, 32);
+
+}
+
+
+#titulo{
+    background: rgb(154, 216, 213);
+    height: 50px;
+}
+
+
+.file-select {
+    position: relative;
+    display: inline-block;
+    margin-top: 10px;
+    margin-left: 650px;
+
+
+}
+
+.file-select::before {
+    background-color: #2f3233;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 3px;
+    content: 'Seleccionar'; /* testo por defecto */
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.file-select input[type="file"] {
+    opacity: 0;
+    width: 200px;
+    height: 32px;
+}
+
+
+#document2{
+    margin-top: 10px;
+    margin-left: 650px;
+    width: 200px;
+    height: 30px;
+    background-color: #2f3233;
+    color: white;
+}
+
+#document3{
+    margin-top: 10px;
+    margin-left: 1100px;
+    width: 200px;
+    height: 30px;
+    background-color: #2f3233;
+    color: white;
+}
+
+
+.list{
+    margin-left: 10px;
+    margin-top: -150px;
+}
+
+
+.list2{
+    margin-left: 10px;
+    margin-top: 600px;
+}
+
+#document4{
+    margin-top: 10px;
+    margin-left: 10px;
+    width: 100px;
+    height: 30px;
+    background-color: #2f3233;
+    color: white;
+}

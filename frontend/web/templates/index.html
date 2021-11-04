@@ -6,29 +6,52 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frontend</title>
-    <link type="text/css" rel="stylesheet" href="{% static 'inde.css' %}"> <!--Modificación para que pudera encontrar el archivo css-->
+    <link type="text/css" rel="stylesheet" href="{% static 'estilo.css' %}"> <!--Modificación para que pudera encontrar el archivo css-->
 </head>
 <body>
     <!--Frontend-->
-    <h1>PROYECTO 3 IPC2</h1>
+    <div id="titulo">
+    <h1>MY APP PROYECTO 3 IPC2</h1>
+    </div>
     <!--<div id="titulo">
     <h2>Hola mundo, Sí funciona el frontend</h2>
     </div>-->
     <form id="formulario" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <input type="file" name="document" id="document"></input>
-        <input type="submit" value="Enviar Archivo"></input>
+        <div class="file-select" id="src-file1" >
+        <input type="file" name="document" id="document" style="cursor: pointer"></input>
+        </div>
+        <input type="submit" value="Enviar Archivo" id="document2" style="cursor: pointer"></input>
     </form>
-        <div id="Entrada">
-            <h2>Archivo de entrada</h2>
-            <textarea cols="80" rows="30" wrap="hard" readonly="no">{{ data }}</textarea>
-        </div>
-        
-        <div id="Salida">
-            <h2>Archivo de salida</h2> 
-            <textarea cols="80" rows="30" wrap="hard" readonly="no">{{ archivo }}</textarea>
-        </div>
-    
+    <form method="get" action="http://localhost:5000/borrar" target="_blank">
+    <input type="submit" value="Reset" id="document3" style="cursor: pointer" action="/Prueba"></input>
+    </form>
 
+    <div id="Entrada">
+        <h2>Archivo de entrada</h2>
+        <textarea cols="80" rows="30" wrap="hard" readonly="no">{{ data }}</textarea>
+    </div>
+    
+    <div id="Salida">
+        <h2>Archivo de salida</h2> 
+        <textarea cols="80" rows="30" wrap="hard" readonly="no">{{ archivo }}</textarea>
+    </div>
+
+
+    <form>
+        <div class="list2" id="list2" >
+        <h4>Filtrar por fecha</h4>
+        <input type="list" list="pets">
+        <datalist id="pets"> <!--El datalist realiza un filtro cuando comenzamos con la letra de cierta palabra a buscar--->
+            
+            {% for i in fecha %}
+            <option>{{ i }}</option>
+            {% endfor %}
+            
+        </datalist>
+        </div>
+        <input type="submit" value="Graficar" id="document4" style="cursor: pointer"></input>
+    </form>
+    
 </body>
 </html>
