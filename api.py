@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 from peticiones import Peticiones
 import re
 from datetime import datetime
-
+import os
 
 variable=""
 ver = ""
@@ -572,11 +572,16 @@ def borrar():
         print("IVA: ", arreglo[i].getIva())
         print("Total: ", arreglo[i].getTotal())
         print("Eliminar: ", arreglo[i].getCon())
-
-
     del arreglo[:]
     print("queda: ", arreglo)
     return("Base de datos formateada")
+
+@app.route('/docu', methods=['GET'])
+def docu():
+    path = 'Ensayo.pdf'
+    os.system(path)
+    print("Sharon Estefany Tagual Godoy\n 201906173\n LAB IPC2")
+    return("Sharon Estefany Tagual Godoy\n 201906173\n LAB IPC2")    
 
 
 if __name__=="__main__":
